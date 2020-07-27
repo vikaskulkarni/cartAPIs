@@ -1,7 +1,9 @@
-# Prerequisites
+# Cart APIs
 
-Java 1.8
-Maven installed
+### Prerequisites
+
+* Java 1.8
+* Maven installed
 
 ### Starting the server
 
@@ -22,14 +24,21 @@ The above command will run both Junit and Cucumber tests, so the server should b
 
 ### Testing APIs from Postman
 
-POST - http://localhost:8081/cart
+POST
+<br/> 
+http://localhost:8081/cart
+<br/>
 Optional Cart body - In this first step, the endpoint creates a new empty Cart
+<br/>
 
 PATCH
+<br/>
 Copy the id from the previous response
+<br/>
 Hit the below PATCH end point to update the cart with products
-http://localhost:8081/cart/{id}
-
+<br/>
+`http://localhost:8081/cart/{id}`
+<br/>
 `[
     {
         "op": "add",
@@ -43,7 +52,10 @@ http://localhost:8081/cart/{id}
         }
     }
 ]`
+<br/>
 
 GET
+<br/>
 Copy the id from the POST call that created the cart and hit the below end point
+<br/>
 `http://localhost:8081/cart/{id}`
