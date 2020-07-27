@@ -58,19 +58,12 @@ public class AddProductsToCartSteps {
 
     @When("^The user adds (\\d+) (.*)s to the shopping cart$")
     public void theUserAddsDoveSoapsToTheShoppingCart(int quantity, String productName) throws JSONException, IOException {
-        JSONObject productValue = new JSONObject();
-        productValue.put("quantity", 5);
-        productValue.put("product", product);
+        updateShoppingCart(cart.get("id").toString(), buildProductBody(quantity).toString());
+    }
 
-        JSONObject patchOperation = new JSONObject();
-        patchOperation.put("op", "add");
-        patchOperation.put("path", "/cartItems/0");
-        patchOperation.put("value", productValue);
-
-        JSONArray requestBodyArr = new JSONArray();
-        requestBodyArr.put(patchOperation);
-
-        updateShoppingCart(cart.get("id").toString(), requestBodyArr.toString());
+    @And("^Then adds another (\\d+) (.*)s to the shopping cart$")
+    public void thenAddsAnotherDoveSoapsToTheShoppingCart(int quantity, String productName) throws JSONException, IOException {
+        updateShoppingCart(cart.get("id").toString(), buildProductBody(quantity).toString());
     }
 
     @Then("^The shopping cart should contain (\\d+) (.+)s each with a unit price of (\\d+\\.\\d+)$")
@@ -78,7 +71,7 @@ public class AddProductsToCartSteps {
         assertEquals(quantity, cart.get("totalNumberOfItemsInCart"));
     }
 
-    @And("^the shopping cart’s total price should equal (\\d+\\.\\d+)$")
+    @And("^The shopping cart’s total price should equal (\\d+\\.\\d+)$")
     public void theShoppingCartSTotalPriceShouldEqual(double totalPrice) throws JSONException {
         assertEquals(totalPrice, cart.get("cartPriceWithoutTax"));
     }
@@ -121,5 +114,18 @@ public class AddProductsToCartSteps {
         return new JSONObject(resString);
     }
 
+    private JSONArray buildProductBody(int quantity) throws JSONException {
+        JSONObject productValue = new JSONObject();
+        productValue.put("quantity", quantity);
+        productValue.put("product", product);
 
+        JSONObject patchOperation = new JSONObject();
+        patchOperation.put("op", "add");
+        patchOperation.put("path", "/cartItems/0");
+        patchOperation.put("value", productValue);
+
+        JSONArray requestBodyArr = new JSONArray();
+        requestBodyArr.put(patchOperation);
+        return requestBodyArr;
+    }
 }
