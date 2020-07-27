@@ -7,7 +7,7 @@
 
 ### Starting the server
 
-1. Clone the codebase
+1. Clone the codebase - `git clone https://github.com/vikaskulkarni/cartAPIs.git`
 2. Navigate to the directory cartAPIs
 3. `mvn clean install -DskipTests`
 3. `mvn spring-boot:run`
