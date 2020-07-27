@@ -1,0 +1,154 @@
+swagger: "2.0"
+info:
+  title: Cart
+  description: Basic Cart APIs
+  version: "1.0"
+host: localhost
+basePath: /v1/
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /cart:
+    post:
+      operationId: createCart
+      summary: Creates a Cart
+      parameters:
+        - schema:
+            $ref: "#/definitions/Cart"
+          required: true
+          in: body
+          name: cart
+          description: The Cart to be created
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: "#/definitions/Cart"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/Error"
+  "/cart/{id}":
+    get:
+      operationId: getCart
+      summary: Gets a Cart by Id
+      parameters:
+        - required: true
+          type: string
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Ok
+          schema:
+            items:
+              $ref: "#/definitions/Cart"
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/Error"
+
+    patch:
+      operationId: updateCart
+      summary: Updates a Cart
+      parameters:
+        - required: true
+          type: string
+          name: id
+          in: path
+        - schema:
+            "$ref": "#/definitions/Cart"
+          required: true
+          in: body
+          name: cart
+      responses:
+        "200":
+          description: Updated
+          schema:
+            "$ref": "#/definitions/Cart"
+        "400":
+          description: Bad Request
+          schema:
+            "$ref": "#/definitions/Error"
+        "500":
+          description: Internal Server Error
+          schema:
+            "$ref": "#/definitions/Error"
+
+definitions:
+  Cart:
+    type: object
+    properties:
+      id:
+        type: string
+      salesTax:
+        $ref: "#/definitions/Price"
+      cartPriceWithTax:
+        $ref: "#/definitions/Price"
+      cartPriceWithoutTax:
+        $ref: "#/definitions/Price"
+      cartItems:
+        type: array
+        items:
+          $ref: "#/definitions/CartItem"
+
+  Price:
+    type: object
+    properties:
+      price:
+        type: number
+        format: float
+
+  CartItem:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Identifier of the cart item"
+      quantity:
+        type: number
+        description: "Quantity of the product"
+      product:
+        $ref: "#/definitions/Product"
+
+  Product:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+        format: float
+      offerCode:
+        $ref: "#/definitions/OfferCode"
+
+  OfferCode:
+    type: object
+    properties:
+      buyCount:
+        type: number
+      getCount:
+        type: number
+
+  Error:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
