@@ -66,4 +66,27 @@ public class CartServiceUnitTest {
         assertThat(responseCart.getCartPriceWithoutTax()).isEqualTo(2199.95f);
     }
 
+    @Test
+    public void shouldUpdateCartTaxSuccessfully() {
+        Cart responseCart = new Cart();
+        responseCart.cartItems(new ArrayList<>());
+
+        Product soap = new Product();
+        soap.setName("Dove Soap");
+        soap.setPrice(39.99f);
+
+        CartItem soapItem = new CartItem();
+        soapItem.setQuantity(5);
+        soapItem.setProduct(soap);
+        responseCart.addCartItem(soapItem);
+        responseCart.setSalesTax(12.5f);
+
+        cartService.processCart(responseCart.getId().toString(), responseCart);
+
+        assertThat(responseCart.getCartItems().size()).isEqualTo(1);
+        assertThat(responseCart.getTotalNumberOfItemsInCart()).isEqualTo(5);
+        assertThat(responseCart.getCartPriceWithoutTax()).isEqualTo(199.95f);
+        assertThat(responseCart.getCartPriceWithTax()).isEqualTo(224.95f);
+    }
+
 }

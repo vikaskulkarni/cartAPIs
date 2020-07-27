@@ -33,10 +33,16 @@ public class CartService {
 
         cart.getCartItems().forEach(this::processItem);
 
+        if (cart.getSalesTax() != 0.0) {
+            float totalTaxOnCart = (float) Math.ceil((cartTotalPriceWithoutTax * (cart.getSalesTax() / 100)));
+            cartTotalPriceWithTax = cartTotalPriceWithoutTax + totalTaxOnCart;
+        }
+
         cart.setTotalNumberOfItemsInCart(currentTotalItems);
 
         BigDecimal bdWo = new BigDecimal(cartTotalPriceWithoutTax).setScale(2, RoundingMode.HALF_UP);
         cart.setCartPriceWithoutTax(bdWo.floatValue());
+
         BigDecimal bdW = new BigDecimal(cartTotalPriceWithTax).setScale(2, RoundingMode.HALF_UP);
         cart.setCartPriceWithTax(bdW.floatValue());
     }

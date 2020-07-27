@@ -31,7 +31,7 @@ http://localhost:8081/cart
 Optional Cart body - In this first step, the endpoint creates a new empty Cart
 <br/>
 
-PATCH
+PATCH - add product
 <br/>
 Copy the id from the previous response
 <br/>
@@ -53,6 +53,20 @@ Hit the below PATCH end point to update the cart with products
     }
 ]`
 <br/>
+
+PATCH - add sales tax
+<br/>
+`http://localhost:8081/cart/c220ab46-b0db-4a43-bb4a-4ec8d0482aeb`
+<br/>
+`
+[
+    {
+        "op": "replace",
+        "path": "/salesTax",
+        "value": 12.5
+    }
+]
+`
 
 GET
 <br/>

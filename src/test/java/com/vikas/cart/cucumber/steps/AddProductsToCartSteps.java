@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
@@ -30,7 +32,10 @@ public class AddProductsToCartSteps {
 
     JSONObject cart;
     JSONArray cartItems;
-    JSONObject product;
+    JSONObject doveSoap;
+    JSONObject axeDeo;
+
+    Map<String, JSONObject> productsMap = new HashMap<>();
 
     CloseableHttpClient httpClient;
 
@@ -53,27 +58,63 @@ public class AddProductsToCartSteps {
 
     @And("^A product, (.*) with a unit price of (\\d+\\.\\d+)$")
     public void andAProductDoveSoapWithAUnitPriceOf(String productName, float price) throws JSONException {
-        product = new JSONObject("{\"name\": \"Dove Soap\",\"price\": 39.99 }");
+        doveSoap = new JSONObject("{\"name\": \"" + productName + "\",\"price\": " + price + " }");
+        productsMap.put(productName, doveSoap);
+    }
+
+    @And("^Another product, (.*) with a unit price of (\\d+.\\d+)$")
+    public void anotherProductAxeDeoWithAUnitPriceOf(String productName, float price) throws JSONException {
+        axeDeo = new JSONObject("{\"name\": \"" + productName + "\",\"price\": " + price + " }");
+        productsMap.put(productName, axeDeo);
     }
 
     @When("^The user adds (\\d+) (.*)s to the shopping cart$")
-    public void theUserAddsDoveSoapsToTheShoppingCart(int quantity, String productName) throws JSONException, IOException {
-        updateShoppingCart(cart.get("id").toString(), buildProductBody(quantity).toString());
+    public void theUserAddsAProductToTheShoppingCart(int quantity, String productName) throws JSONException, IOException {
+        updateShoppingCart(cart.get("id").toString(),
+                buildProductBody(quantity, productsMap.get(productName)).toString());
     }
 
     @And("^Then adds another (\\d+) (.*)s to the shopping cart$")
-    public void thenAddsAnotherDoveSoapsToTheShoppingCart(int quantity, String productName) throws JSONException, IOException {
-        updateShoppingCart(cart.get("id").toString(), buildProductBody(quantity).toString());
+    public void thenAddsAnotherProductToTheShoppingCart(int quantity, String productName) throws JSONException, IOException {
+        updateShoppingCart(cart.get("id").toString(),
+                buildProductBody(quantity, productsMap.get(productName)).toString());
     }
 
     @Then("^The shopping cart should contain (\\d+) (.+)s each with a unit price of (\\d+\\.\\d+)$")
-    public void theShoppingCartShouldContainDoveSoapsEachWithAUnitPriceOf(int quantity, String productName, float price) throws JSONException {
-        assertEquals(quantity, cart.get("totalNumberOfItemsInCart"));
+    public void theShoppingCartShouldContainDoveSoapsEachWithAUnitPriceOf(int quantity, String productName, double price) throws JSONException {
+        JSONArray cartItems = (JSONArray) cart.get("cartItems");
+        int toBeAssertedQuantity = 0;
+        double toBeAssertedPrice = 0;
+
+        for (int i = 0; i < cartItems.length(); i++) {
+            JSONObject item = (JSONObject) cartItems.get(i);
+            JSONObject product = (JSONObject) item.get("product");
+
+            if (product.get("name").equals(productName)) {
+                toBeAssertedQuantity = toBeAssertedQuantity + (int) item.get("quantity");
+                toBeAssertedPrice = (double) product.get("price");
+            }
+        }
+        assertEquals(quantity, toBeAssertedQuantity);
+        assertEquals(price, toBeAssertedPrice, 1e-15);
     }
 
     @And("^The shopping cart’s total price should equal (\\d+\\.\\d+)$")
     public void theShoppingCartSTotalPriceShouldEqual(double totalPrice) throws JSONException {
-        assertEquals(totalPrice, cart.get("cartPriceWithoutTax"));
+        assertEquals(totalPrice, cart.get("cartPriceWithTax"));
+    }
+
+    @And("^A sales tax rate of (\\d+.\\d+)%$")
+    public void addTaxToCart(double tax) throws JSONException, IOException {
+        updateShoppingCart(cart.get("id").toString(),
+                buildSalesTaxBody(tax).toString());
+    }
+
+    @And("^The total sales tax amount for the shopping cart should equal (\\d+.\\d+)$")
+    public void theTotalSalesTaxAmountForTheShoppingCartShouldEqual(double totalTaxAmount) throws JSONException {
+        assertEquals(totalTaxAmount,
+                (Double) cart.get("cartPriceWithTax") - (Double) cart.get("cartPriceWithoutTax"),
+                1e-15);
     }
 
     @After
@@ -114,7 +155,7 @@ public class AddProductsToCartSteps {
         return new JSONObject(resString);
     }
 
-    private JSONArray buildProductBody(int quantity) throws JSONException {
+    private JSONArray buildProductBody(int quantity, JSONObject product) throws JSONException {
         JSONObject productValue = new JSONObject();
         productValue.put("quantity", quantity);
         productValue.put("product", product);
@@ -123,6 +164,17 @@ public class AddProductsToCartSteps {
         patchOperation.put("op", "add");
         patchOperation.put("path", "/cartItems/0");
         patchOperation.put("value", productValue);
+
+        JSONArray requestBodyArr = new JSONArray();
+        requestBodyArr.put(patchOperation);
+        return requestBodyArr;
+    }
+
+    private JSONArray buildSalesTaxBody(double tax) throws JSONException {
+        JSONObject patchOperation = new JSONObject();
+        patchOperation.put("op", "replace");
+        patchOperation.put("path", "/salesTax");
+        patchOperation.put("value", tax);
 
         JSONArray requestBodyArr = new JSONArray();
         requestBodyArr.put(patchOperation);
