@@ -157,10 +157,10 @@ public class CartServiceUnitTest {
 
         assertThat(responseCart.getCartItems().size()).isEqualTo(1);
         assertThat(responseCart.getTotalNumberOfItemsInCart()).isEqualTo(4);
-        assertThat(responseCart.getCartPriceWithoutTax()).isEqualTo(39.99f);
-        assertThat(responseCart.getCartPriceWithTax()).isEqualTo(44.99f);
+        assertThat(responseCart.getCartPriceWithoutTax()).isEqualTo(119.97f);
+        assertThat(responseCart.getCartPriceWithTax()).isEqualTo(134.97f);
 
-        assert 5.0 == (responseCart.getCartPriceWithTax() - responseCart.getCartPriceWithoutTax());
+        assert 15.0 == (responseCart.getCartPriceWithTax() - responseCart.getCartPriceWithoutTax());
     }
 
     @Test

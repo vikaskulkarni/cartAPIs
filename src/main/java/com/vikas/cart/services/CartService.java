@@ -21,7 +21,7 @@ public class CartService {
     Integer currentTotalItems;
     Float cartTotalPriceWithoutTax;
     Float cartTotalPriceWithTax;
-    Float discount = 0.0f;
+    Float discount;
 
     public Cart getCart(String id) {
         return cartsInSession.get(id);
@@ -37,6 +37,7 @@ public class CartService {
         currentTotalItems = 0;
         cartTotalPriceWithoutTax = 0f;
         cartTotalPriceWithTax = 0f;
+        discount = 0.0f;
 
         cart.getCartItems().forEach(this::processItem);
 
