@@ -1,5 +1,6 @@
 package com.vikas.cart.cucumber.steps;
 
+import com.vikas.cart.model.CartItem;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.And;
@@ -21,6 +22,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -116,8 +119,11 @@ public class AddProductsToCartSteps {
 
     @And("^The total sales tax amount for the shopping cart should equal (\\d+.\\d+)$")
     public void theTotalSalesTaxAmountForTheShoppingCartShouldEqual(double totalTaxAmount) throws JSONException {
+        BigDecimal ta = new BigDecimal(
+                (Double) cart.get("cartPriceWithTax") - (Double) cart.get("cartPriceWithoutTax")).
+                setScale(2, RoundingMode.HALF_UP);
         assertEquals(totalTaxAmount,
-                (Double) cart.get("cartPriceWithTax") - (Double) cart.get("cartPriceWithoutTax"),
+                ta.floatValue(),
                 1e-15);
     }
 
@@ -189,17 +195,53 @@ public class AddProductsToCartSteps {
         return requestBodyArr;
     }
 
-    @And("^A product, (.*) with a unit price of (\\d+.\\d+) and a associated Buy (\\d+) Get (\\d+) Free offer$")
-    public void aProductDoveSoapWithAUnitPriceOfAndAAssociatedBuyGetFreeOffer(String productName, double price, int buyCount, int getCount) throws JSONException {
+    @And("^A product, (.*) with a unit price of (\\d+.\\d+) and a associated Buy (\\d+) Get (\\d+)(.*) Free offer$")
+    public void aProductDoveSoapWithAUnitPriceOfAndAAssociatedBuyGetFreeOffer(String productName,
+                                                                              double price,
+                                                                              int buyCount,
+                                                                              int getCount, String criteria)
+            throws JSONException {
         andAProductDoveSoapWithAUnitPriceOf(productName, price);
         int offerCode = 0;
         if (buyCount == 2 && getCount == 1)
             offerCode = 2;
+        if (getCount == 50 && criteria.equals("%"))
+            offerCode = 3;
 
         productsOfferCode.put(productName, offerCode);
     }
 
     @And("^The shopping cart’s total discount should equal (\\d+.\\d+)$")
-    public void theShoppingCartSTotalDiscountShouldEqual(double totalDiscount) {
+    public void theShoppingCartSTotalDiscountShouldEqual(double totalDiscount) throws JSONException {
+
+        double totalCartAmount = 0;
+        int offerCode = 0;
+        double productPrice = 0;
+        int quantity = 0;
+        JSONArray items = (JSONArray) cart.get("cartItems");
+
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject obj = (JSONObject) items.get(i);
+            offerCode = (int) obj.get("offerCode");
+            productPrice = (double) ((JSONObject) obj.get("product")).get("price");
+            quantity = (int) obj.get("quantity");
+            double price = productPrice * quantity;
+
+            totalCartAmount += price;
+        }
+
+        BigDecimal da = new BigDecimal(totalCartAmount).setScale(2, RoundingMode.HALF_UP);
+        totalDiscount = (double) da.floatValue() - (double) cart.get("cartPriceWithoutTax");
+
+        BigDecimal td = new BigDecimal(totalDiscount).setScale(2, RoundingMode.HALF_UP);
+
+        System.out.println("offercode:" + offerCode + ", productPrice: " + productPrice + ", td.floatValue: " + td.floatValue());
+        if (offerCode == 2)
+            assert productPrice == td.doubleValue();
+        if (offerCode == 3) {
+            int totalItemTobeDiscounted = quantity / 2;
+            double totalDiscountVal = totalItemTobeDiscounted * (Math.ceil(0.5 * productPrice));
+            assert totalDiscountVal == td.doubleValue();
+        }
     }
 }

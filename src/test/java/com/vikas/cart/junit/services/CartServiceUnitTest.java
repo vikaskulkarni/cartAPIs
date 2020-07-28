@@ -1,6 +1,7 @@
 package com.vikas.cart.junit.services;
 
 import com.vikas.cart.model.BuyXGetYOffer;
+import com.vikas.cart.model.BuyXGetYPercentOffer;
 import com.vikas.cart.model.Cart;
 import com.vikas.cart.model.CartItem;
 import com.vikas.cart.model.OfferCode;
@@ -228,6 +229,34 @@ public class CartServiceUnitTest {
                 292.96f, 259.96f, 33f);
     }
 
+    @Test
+    public void shouldUpdateCartPercentDiscountSuccessfully() {
+        OfferCode offerCode = new BuyXGetYPercentOffer();
+        offerCode.setId(3);
+        offerCode.setBuyCount(2);
+        offerCode.setGetCount(50);
+        when(offerService.findById(3, BuyXGetYPercentOffer.class)).thenReturn(offerCode);
+
+        Cart responseCart = new Cart();
+        responseCart.cartItems(new ArrayList<>());
+
+        Product soap = new Product();
+        soap.setName("Dove Soap");
+        soap.setPrice(39.99f);
+
+        CartItem soapItem = new CartItem();
+        soapItem.setQuantity(2);
+        soapItem.setProduct(soap);
+        soapItem.setOfferCode(3);
+        responseCart.addCartItem(soapItem);
+        responseCart.setSalesTax(12.5f);
+
+        cartService.processCart(responseCart.getId().toString(), responseCart);
+
+        assertResponseCart(responseCart, soapItem, 1, 2,
+                67.98f, 59.98f, 8.0f);
+    }
+
     private void assertResponseCart(Cart responseCart, CartItem cartItem,
                                     int cartItems, int totalItems,
                                     float cartPriceWithTax, float cartPriceWithoutTax,
@@ -251,9 +280,16 @@ public class CartServiceUnitTest {
 
         td = new BigDecimal(totalDiscount).setScale(2, RoundingMode.HALF_UP);
 
-        assert cartItem.getProduct().getPrice() == td.floatValue();
+        if (cartItem.getOfferCode() == 2)
+            assert cartItem.getProduct().getPrice() == td.floatValue();
+        if (cartItem.getOfferCode() == 3) {
+            int totalItemTobeDiscounted = cartItem.getQuantity() / 2;
+            double totalDiscountVal = totalItemTobeDiscounted * (Math.ceil(0.5 * cartItem.getProduct().getPrice()));
+            assert totalDiscountVal == td.floatValue();
+        }
 
-        assert totalTax == (responseCart.getCartPriceWithTax() - responseCart.getCartPriceWithoutTax());
+        BigDecimal ta = new BigDecimal(responseCart.getCartPriceWithTax() - responseCart.getCartPriceWithoutTax()).setScale(2, RoundingMode.HALF_UP);
+
+        assert totalTax == ta.floatValue();
     }
-
 }

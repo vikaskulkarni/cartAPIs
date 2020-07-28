@@ -1,7 +1,7 @@
 Feature: Testing add products REST API
   Users should be able to add products with offer to cart
 
-  Scenario: Add products to the shopping cart, which have “Buy X, Get Y free” offer
+  Scenario: 4. Add products to the shopping cart, which have “Buy X, Get Y free” offer
     Given An empty shopping cart
     And A product, Dove Soap with a unit price of 39.99 and a associated Buy 2 Get 1 Free offer
     And Another product, Axe Deo with a unit price of 89.99

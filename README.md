@@ -73,3 +73,29 @@ GET
 Copy the id from the POST call that created the cart and hit the below end point
 <br/>
 `http://localhost:8081/cart/{id}`
+
+PATCH - add product with offer
+<br/>
+Offer Code 2 - Buy 1 Get 2
+<br/>
+Offer Code 3 - Buy 1 Get 50% off on second
+<br/>
+Hit the below PATCH end point to update the cart with products
+<br/>
+`http://localhost:8081/cart/{id}`
+<br/>
+`[
+    {
+        "op": "add",
+        "path": "/cartItems/0",
+        "value": {
+            "product": {
+            "price": 39.99,
+            "name": "Dove Soap"
+            },
+            "quantity": 5,
+            offerCode: 2
+        }
+    }
+]`
+<br/>

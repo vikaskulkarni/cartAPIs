@@ -1,7 +1,7 @@
 Feature: Testing add products REST API
-  Users should be able to add products to cart
+  Users should be able to add products to cart with sales tax
 
-  Scenario: Add additional products of the same type to the shopping cart
+  Scenario: 3. Calculate the tax rate of the shopping cart with multiple items
     Given An empty shopping cart
     And A product, Dove Soap with a unit price of 39.99
     And Another product, Axe Deo with a unit price of 99.99
