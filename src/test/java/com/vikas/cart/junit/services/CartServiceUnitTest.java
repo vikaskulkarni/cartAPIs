@@ -257,6 +257,38 @@ public class CartServiceUnitTest {
                 67.98f, 59.98f, 8.0f);
     }
 
+    @Test
+    public void shouldUpdateCartGlobalDiscountSuccessfully() {
+        Cart responseCart = new Cart();
+        responseCart.cartItems(new ArrayList<>());
+
+        Product soap = new Product();
+        soap.setName("Dove Soap");
+        soap.setPrice(39.99f);
+
+        CartItem soapItem = new CartItem();
+        soapItem.setQuantity(5);
+        soapItem.setProduct(soap);
+        soapItem.setOfferCode(4);
+        responseCart.addCartItem(soapItem);
+        responseCart.setSalesTax(12.5f);
+
+        Product axeSoap = new Product();
+        axeSoap.setName("Axe Soap");
+        axeSoap.setPrice(89.99f);
+
+        CartItem axeSoapItem = new CartItem();
+        axeSoapItem.setQuantity(4);
+        axeSoapItem.setProduct(axeSoap);
+        axeSoapItem.setOfferCode(4);
+        responseCart.addCartItem(axeSoapItem);
+
+        cartService.processCart(responseCart.getId().toString(), responseCart);
+
+        assertResponseCart(responseCart, soapItem, 2, 9,
+                503.93f, 447.93f, 56f);
+    }
+
     private void assertResponseCart(Cart responseCart, CartItem cartItem,
                                     int cartItems, int totalItems,
                                     float cartPriceWithTax, float cartPriceWithoutTax,
@@ -286,6 +318,10 @@ public class CartServiceUnitTest {
             int totalItemTobeDiscounted = cartItem.getQuantity() / 2;
             double totalDiscountVal = totalItemTobeDiscounted * (Math.ceil(0.5 * cartItem.getProduct().getPrice()));
             assert totalDiscountVal == td.floatValue();
+        }
+        if (cartItem.getOfferCode() == 4) {
+            BigDecimal ta = new BigDecimal((totalCartAmount * 0.2)).setScale(2, RoundingMode.HALF_UP);
+            assert 111.98f == ta.floatValue();
         }
 
         BigDecimal ta = new BigDecimal(responseCart.getCartPriceWithTax() - responseCart.getCartPriceWithoutTax()).setScale(2, RoundingMode.HALF_UP);

@@ -37,6 +37,7 @@ public class AddProductsToCartSteps {
     JSONArray cartItems;
     JSONObject doveSoap;
     JSONObject axeDeo;
+    int globalOfferCode = -1;
 
     Map<String, JSONObject> productsMap = new HashMap<>();
     Map<String, Integer> productsOfferCode = new HashMap<>();
@@ -168,6 +169,7 @@ public class AddProductsToCartSteps {
     private JSONArray buildProductBody(int quantity, JSONObject product) throws JSONException {
         String productName = product.get("name").toString();
         int offerCode = productsOfferCode.get(productName) == null ? 0 : productsOfferCode.get(productName);
+        offerCode = globalOfferCode != -1 ? globalOfferCode : offerCode;
 
         JSONObject productValue = new JSONObject();
         productValue.put("quantity", quantity);
@@ -243,5 +245,14 @@ public class AddProductsToCartSteps {
             double totalDiscountVal = totalItemTobeDiscounted * (Math.ceil(0.5 * productPrice));
             assert totalDiscountVal == td.doubleValue();
         }
+        if (offerCode == 4) {
+            BigDecimal ta = new BigDecimal((totalCartAmount * 0.2)).setScale(2, RoundingMode.HALF_UP);
+            assert 111.98f == ta.floatValue();
+        }
+    }
+
+    @And("^A global (\\d+)% discount if the cart total is greater than or equal to (\\d+)$")
+    public void aGlobalDiscountIfTheCartTotalIsGreaterThanOrEqualTo(int discount, int threshold) {
+        globalOfferCode = 4;
     }
 }

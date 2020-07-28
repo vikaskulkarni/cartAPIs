@@ -62,6 +62,9 @@ public class CartService {
         int quantity = cartItem.getQuantity();
         currentTotalItems = currentTotalItems + quantity;
 
+        cartTotalPriceWithoutTax = cartTotalPriceWithoutTax +
+                (cartItem.getProduct().getPrice() * quantity);
+
         switch (cartItem.getOfferCode()) {
             case 2:
                 BuyXGetYOffer offerCode = (BuyXGetYOffer) offerService.findById(cartItem.getOfferCode(), BuyXGetYOffer.class);
@@ -71,9 +74,10 @@ public class CartService {
                 BuyXGetYPercentOffer offerCodePercent = (BuyXGetYPercentOffer) offerService.findById(cartItem.getOfferCode(), BuyXGetYPercentOffer.class);
                 discount = offerCodePercent.getDiscount(quantity, cartItem.getProduct().getPrice());
                 break;
+            case 4:
+                if (cartTotalPriceWithoutTax >= 500)
+                    discount = (float) 0.2 * cartTotalPriceWithoutTax;
+                break;
         }
-
-        cartTotalPriceWithoutTax = cartTotalPriceWithoutTax +
-                (cartItem.getProduct().getPrice() * quantity);
     }
 }

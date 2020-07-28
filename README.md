@@ -80,6 +80,8 @@ Offer Code 2 - Buy 1 Get 2
 <br/>
 Offer Code 3 - Buy 1 Get 50% off on second
 <br/>
+Offer Code 4 - 20% global discount
+<br/>
 Hit the below PATCH end point to update the cart with products
 <br/>
 `http://localhost:8081/cart/{id}`
