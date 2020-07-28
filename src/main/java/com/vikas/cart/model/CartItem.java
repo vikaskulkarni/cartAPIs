@@ -20,7 +20,7 @@ public class CartItem {
     private Product product = null;
 
     @JsonProperty("offerCode")
-    private OfferCode offerCode = null;
+    private int offerCode = 0;
 
     public CartItem id(UUID id) {
         this.id = id;
@@ -85,11 +85,11 @@ public class CartItem {
      * @return offerCode
      **/
     @ApiModelProperty(value = "")
-    public OfferCode getOfferCode() {
+    public int getOfferCode() {
         return offerCode;
     }
 
-    public void setOfferCode(OfferCode offerCode) {
+    public void setOfferCode(int offerCode) {
         this.offerCode = offerCode;
     }
 

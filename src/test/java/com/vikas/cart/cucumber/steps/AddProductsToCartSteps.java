@@ -36,6 +36,7 @@ public class AddProductsToCartSteps {
     JSONObject axeDeo;
 
     Map<String, JSONObject> productsMap = new HashMap<>();
+    Map<String, Integer> productsOfferCode = new HashMap<>();
 
     CloseableHttpClient httpClient;
 
@@ -47,8 +48,8 @@ public class AddProductsToCartSteps {
 
     @Given("^An empty shopping cart$")
     public void createAnEmptyShoppingCart() throws IOException, JSONException {
-        StringEntity entity = new StringEntity("{}");
-        createShoppingCart(entity);
+//        StringEntity entity = new StringEntity("{}");
+//        createShoppingCart(entity);
     }
 
     @Then("^Return an empty cart$")
@@ -57,7 +58,7 @@ public class AddProductsToCartSteps {
     }
 
     @And("^A product, (.*) with a unit price of (\\d+\\.\\d+)$")
-    public void andAProductDoveSoapWithAUnitPriceOf(String productName, float price) throws JSONException {
+    public void andAProductDoveSoapWithAUnitPriceOf(String productName, double price) throws JSONException {
         doveSoap = new JSONObject("{\"name\": \"" + productName + "\",\"price\": " + price + " }");
         productsMap.put(productName, doveSoap);
     }
@@ -70,6 +71,9 @@ public class AddProductsToCartSteps {
 
     @When("^The user adds (\\d+) (.*)s to the shopping cart$")
     public void theUserAddsAProductToTheShoppingCart(int quantity, String productName) throws JSONException, IOException {
+        StringEntity entity = new StringEntity("{}");
+        cart = createShoppingCart(entity);
+
         updateShoppingCart(cart.get("id").toString(),
                 buildProductBody(quantity, productsMap.get(productName)).toString());
     }
@@ -122,12 +126,12 @@ public class AddProductsToCartSteps {
     }
 
 
-    private void createShoppingCart(StringEntity entity) throws IOException, JSONException {
+    private JSONObject createShoppingCart(StringEntity entity) throws IOException, JSONException {
         HttpPost request = new HttpPost("http://localhost:8081/cart/");
         request.addHeader("content-type", "application/json");
         request.setEntity(entity);
         HttpResponse response = httpClient.execute(request);
-        cart = getContentFromResponse(response.getEntity());
+        return getContentFromResponse(response.getEntity());
     }
 
     private void updateShoppingCart(String id, String jsonBody) throws IOException, JSONException {
@@ -156,9 +160,13 @@ public class AddProductsToCartSteps {
     }
 
     private JSONArray buildProductBody(int quantity, JSONObject product) throws JSONException {
+        String productName = product.get("name").toString();
+        int offerCode = productsOfferCode.get(productName) == null ? 0 : productsOfferCode.get(productName);
+
         JSONObject productValue = new JSONObject();
         productValue.put("quantity", quantity);
         productValue.put("product", product);
+        productValue.put("offerCode", offerCode);
 
         JSONObject patchOperation = new JSONObject();
         patchOperation.put("op", "add");
@@ -179,5 +187,19 @@ public class AddProductsToCartSteps {
         JSONArray requestBodyArr = new JSONArray();
         requestBodyArr.put(patchOperation);
         return requestBodyArr;
+    }
+
+    @And("^A product, (.*) with a unit price of (\\d+.\\d+) and a associated Buy (\\d+) Get (\\d+) Free offer$")
+    public void aProductDoveSoapWithAUnitPriceOfAndAAssociatedBuyGetFreeOffer(String productName, double price, int buyCount, int getCount) throws JSONException {
+        andAProductDoveSoapWithAUnitPriceOf(productName, price);
+        int offerCode = 0;
+        if (buyCount == 2 && getCount == 1)
+            offerCode = 2;
+
+        productsOfferCode.put(productName, offerCode);
+    }
+
+    @And("^The shopping cart’s total discount should equal (\\d+.\\d+)$")
+    public void theShoppingCartSTotalDiscountShouldEqual(double totalDiscount) {
     }
 }

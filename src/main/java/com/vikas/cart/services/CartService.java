@@ -1,7 +1,10 @@
 package com.vikas.cart.services;
 
+import com.vikas.cart.model.BuyXGetYOffer;
+import com.vikas.cart.model.BuyXGetYPercentOffer;
 import com.vikas.cart.model.Cart;
 import com.vikas.cart.model.CartItem;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -11,10 +14,14 @@ import java.util.Map;
 
 @Service
 public class CartService {
+    @Autowired
+    OfferService offerService;
+
     Map<String, Cart> cartsInSession = new HashMap<>();
     Integer currentTotalItems;
     Float cartTotalPriceWithoutTax;
     Float cartTotalPriceWithTax;
+    Float discount = 0.0f;
 
     public Cart getCart(String id) {
         return cartsInSession.get(id);
@@ -33,6 +40,9 @@ public class CartService {
 
         cart.getCartItems().forEach(this::processItem);
 
+        cartTotalPriceWithoutTax = cartTotalPriceWithoutTax - discount;
+        cartTotalPriceWithTax = cartTotalPriceWithoutTax;
+
         if (cart.getSalesTax() != 0.0) {
             float totalTaxOnCart = (float) Math.ceil((cartTotalPriceWithoutTax * (cart.getSalesTax() / 100)));
             cartTotalPriceWithTax = cartTotalPriceWithoutTax + totalTaxOnCart;
@@ -48,11 +58,21 @@ public class CartService {
     }
 
     private void processItem(CartItem cartItem) {
-        currentTotalItems = currentTotalItems + cartItem.getQuantity();
+        int quantity = cartItem.getQuantity();
+        currentTotalItems = currentTotalItems + quantity;
+
+        switch (cartItem.getOfferCode()) {
+            case 2:
+                BuyXGetYOffer offerCode = (BuyXGetYOffer) offerService.findById(cartItem.getOfferCode(), BuyXGetYOffer.class);
+                discount = offerCode.getDiscount(quantity, cartItem.getProduct().getPrice());
+                break;
+            case 3:
+                BuyXGetYPercentOffer offerCodePercent = (BuyXGetYPercentOffer) offerService.findById(cartItem.getOfferCode(), BuyXGetYPercentOffer.class);
+                discount = offerCodePercent.getDiscount(quantity, cartItem.getProduct().getPrice());
+                break;
+        }
 
         cartTotalPriceWithoutTax = cartTotalPriceWithoutTax +
-                (cartItem.getProduct().getPrice() * cartItem.getQuantity());
-        cartTotalPriceWithTax = cartTotalPriceWithTax +
-                (cartItem.getProduct().getPrice() * cartItem.getQuantity());
+                (cartItem.getProduct().getPrice() * quantity);
     }
 }

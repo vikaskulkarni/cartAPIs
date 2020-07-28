@@ -16,16 +16,16 @@ import java.util.Objects;
  */
 @Entity
 @Table
-public class OfferCode {
+public abstract class OfferCode {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonProperty("id")
-    private String id = null;
+    private Integer id = null;
 
     @Column
     @JsonProperty("buyCount")
-    private Integer buyCount = 0;
+    protected Integer buyCount = 0;
 
     @Column
     @JsonProperty("getCount")
@@ -36,7 +36,7 @@ public class OfferCode {
         return this;
     }
 
-    public OfferCode id(String id) {
+    public OfferCode id(Integer id) {
         this.id = id;
         return this;
     }
@@ -47,11 +47,11 @@ public class OfferCode {
      * @return id
      **/
     @ApiModelProperty(value = "")
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -131,5 +131,6 @@ public class OfferCode {
         return o.toString().replace("\n", "\n    ");
     }
 
+    public abstract Float getDiscount(int quantity, Float price);
 }
 
