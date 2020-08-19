@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestClientException;
@@ -57,4 +58,19 @@ public interface ICart {
      */
     @PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
     ResponseEntity<Cart> updateCart(@PathVariable String id, @RequestBody JsonPatch patch) throws RestClientException, JsonPatchException, JsonProcessingException;
+
+
+    /**
+     * Updates a Cart
+     *
+     * <p><b>200</b> - Updated
+     * <p><b>400</b> - Bad Request
+     * <p><b>500</b> - Internal Server Error
+     *
+     * @param id The id parameter
+     * @return Cart
+     * @throws RestClientException if an error occurs while attempting to invoke the API
+     */
+    @PutMapping(path = "/{id}", consumes = "application/json")
+    ResponseEntity<Cart> modifyCart(@PathVariable String id, @RequestBody Cart cart) throws RestClientException, JsonPatchException, JsonProcessingException;
 }
